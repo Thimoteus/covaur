@@ -1,0 +1,23 @@
+{
+  "name": "covaur",
+  "version": "1.0.0",
+  "description": "A simple AUR helper",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "arch",
+    "linux",
+    "aur",
+    "helper"
+  ],
+  "author": "thimoteus",
+  "license": "MIT",
+  "dependencies": {
+    "yargs": "^4.3.2"
+  }
+}

@@ -11,6 +11,9 @@
     "output"
   ],
   "dependencies": {
-    "purescript-console": "^0.1.0"
+    "purescript-console": "^0.1.0",
+    "purescript-node-child-process": "^0.5.1",
+    "purescript-yargs": "^0.7.2",
+    "purescript-simple-request": "^2.0.5"
   }
 }
