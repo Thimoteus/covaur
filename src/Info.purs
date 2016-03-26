@@ -17,9 +17,10 @@ import Control.Monad.Eff.Exception (throwException, message)
 info :: String -> IO Unit
 info p = runAff throwException pure do
   res <- single p
-  either (liftEff <<< log <<< message) (liftEff <<< traverse_ logResult) res
+  either (liftEff <<< log <<< message) logResult res
     where
-    logResult  = log <<< pprint
+    logResult [] = liftEff $ log "No such package found." --log <<< pprint
+    logResult xs = liftEff $ traverse_ (log <<< pprint) xs
     f = flip rpadTil 23
     g = showStrArrayPad 23
     pprint (Result r) =

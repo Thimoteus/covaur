@@ -6,10 +6,10 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (EXCEPTION)
 
+import Data.Monoid (class Monoid, mempty)
 import Data.Foreign (Foreign, F)
 import Data.Foreign.Class (class IsForeign, readProp, read)
-import Data.Foreign.Null (runNull, readNull)
-import Data.Foreign.Undefined (readUndefined, runUndefined)
+import Data.Foreign.NullOrUndefined (readNullOrUndefined, runNullOrUndefined)
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Date (Date, fromEpochMilliseconds)
 import Data.Time (Milliseconds(..))
@@ -43,7 +43,7 @@ newtype Result =
          , url :: String
          , numVotes :: Int
          , popularity :: Number
-         , outOfDate :: Maybe Boolean
+         , outOfDate :: Boolean
          , maintainer :: String
          , firstSubmitted :: Date
          , lastModified :: Date
@@ -63,29 +63,26 @@ instance showResult :: Show Result where
 instance isForeignResult :: IsForeign Result where
   read value = do
     id <- readProp "ID" value
-    name <- readProp "Name" value
+    name <- safeToValue "Name" value
     packageBaseID <- readProp "PackageBaseID" value
-    packageBase <- readProp "PackageBase" value
-    version <- readProp "Version" value
-    description <- readProp "Description" value
+    packageBase <- safeToValue "PackageBase" value
+    version <- safeToValue "Version" value
+    description <- safeToValue "Description" value
     url <- readProp "URL" value
     numVotes <- readProp "NumVotes" value
     popularity <- readProp "Popularity" value
-    outOfDate <- do
-      v <- readProp "OutOfDate" value
-      n <- readNull read v
-      pure $ runNull n
-    maintainer <- readProp "Maintainer" value
+    outOfDate <- safeWithValue false "OutOfDate" value
+    maintainer <- safeToValue "Maintainer" value
     firstSubmitted <- toDate <$> readProp "FirstSubmitted" value
     lastModified <- toDate <$> readProp "LastModified" value
     urlPath <- readProp "URLPath" value
-    depends <- readProp "Depends" value
-    makeDepends <- safeToArray "MakeDepends" value
-    optDepends <- safeToArray "OptDepends" value
-    conflicts <- safeToArray "Conflicts" value
-    provides <- safeToArray "Provides" value
-    license <- safeToArray "License" value
-    keywords <- safeToArray "Keywords" value
+    depends <- safeToValue "Depends" value
+    makeDepends <- safeToValue "MakeDepends" value
+    optDepends <- safeToValue "OptDepends" value
+    conflicts <- safeToValue "Conflicts" value
+    provides <- safeToValue "Provides" value
+    license <- safeToValue "License" value
+    keywords <- safeToValue "Keywords" value
     pure $ Result { id, name, packageBaseID, packageBase, version, description
                   , url, numVotes, popularity, outOfDate, maintainer, firstSubmitted
                   , lastModified, urlPath, depends, makeDepends, optDepends
@@ -101,11 +98,14 @@ toDate = f <<< fromEpochMilliseconds <<< Milliseconds <<< (* 1000.0) <<< toNumbe
 instance isForeignSearch :: IsForeign Search where
   read value = do
     resultcount <- readProp "resultcount" value
-    results <- readProp "results" value
+    results <- safeToValue "results" value
     pure $ Search resultcount results
 
-safeToArray :: forall a. IsForeign a => String -> Foreign -> F (Array a)
-safeToArray key val = do
+safeToValue :: forall m. (Monoid m, IsForeign m) => String -> Foreign -> F m
+safeToValue = safeWithValue mempty
+
+safeWithValue :: forall a. IsForeign a => a -> String -> Foreign -> F a
+safeWithValue safe key val = do
   v <- readProp key val
-  u <- readUndefined read v
-  pure $ fromMaybe [] $ runUndefined u
+  u <- readNullOrUndefined read v
+  pure $ fromMaybe safe $ runNullOrUndefined u
