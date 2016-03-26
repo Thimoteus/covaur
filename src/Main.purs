@@ -1,8 +1,7 @@
 module Main where
 
 import Prelude
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Control.Monad.Eff.Console (log)
 
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
@@ -10,27 +9,44 @@ import Data.Either (Either(..))
 import Node.Yargs.Setup as Setup
 import Node.Yargs.Applicative as Yargs
 
-import Util (catch)
+import Search (search)
+import Info (info)
+import GitUrl (gitUrl)
+import Util (catch, printMessage)
+import Types (IO, App)
+
+import Partial.Unsafe (unsafePartial)
 
 type IsSearch = Boolean
+type IsInfo = Boolean
+type IsGitUrl = Boolean
 type Package = String
 
-covaur :: forall eff. Package -> IsSearch -> Eff ( console :: CONSOLE | eff ) Unit
-covaur package true = log package
+covaur :: Partial => Package -> IsSearch -> IsInfo -> IsGitUrl -> IO Unit
+covaur package true _ _ = search package
+covaur package _ true _ = info package
+covaur package _ _ true = gitUrl package
 
 usage :: String
-usage = "[-p|--package PACKAGE] [-s|--search] [--help]"
+usage = "[-p|--package PACKAGE] [-s|--search] [-i|--info] [-g|--git-url] [--help]"
 
-main :: forall e. Eff (console :: CONSOLE | e) Unit
+main :: App
 main = do
   res <- catch cli
   case res of
-       Left _ -> log $ "Usage: covaur " <> usage
+       Left e -> do
+         printMessage e
+         log "If you believe this to be a bug, open an issue at https://www.github.com/Thimoteus/covaur/issues/"
+         log $ "Usage: covaur " <> usage
        _ -> pure unit
   where
   packageArg = Yargs.yarg "p" ["package"] (Just "An AUR package name") (Right "Supply the name of an AUR package") false
-  searchArg = Yargs.flag "s" ["search"] (Just "Prints a list of search matches")
-  setup = Setup.usage ("$0 " <> usage)
+  searchArg = Yargs.flag "s" ["search"] (Just "Search the AUR for packages")
+  infoArg = Yargs.flag "i" ["info"] (Just "Get AUR info on a package")
+  gitUrlArg = Yargs.flag "g" ["git-url"] (Just "Prints a package's git repository address")
+  setup = Setup.usage ("covaur " <> usage)
        <> Setup.help "help" "prints this message"
-  cli = Yargs.runY setup $ covaur <$> packageArg <*> searchArg
+       <> Setup.example "covaur -sp purescript-bin" "Searches the AUR for a package named `purescript-bin` and prints the results"
+       <> Setup.example "git clone $(covaur -gp purescript-bin)" "Clones the `purescript-bin` repository"
+  cli = Yargs.runY setup $ (unsafePartial covaur) <$> packageArg <*> searchArg <*> infoArg <*> gitUrlArg
 

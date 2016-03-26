@@ -1,13 +1,13 @@
 {
   "name": "covaur",
   "version": "1.0.0",
-  "description": "A simple AUR helper",
-  "main": "index.js",
+  "description": "A minimal AUR helper",
+  "bin": { "covaur": "./covaur" },
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node covaur --help"
   },
   "keywords": [
     "arch",
@@ -15,6 +15,10 @@
     "aur",
     "helper"
   ],
+  "scripts": {
+    "build": "pulp build --optimise --to covaur",
+    "preinstall": "sed -i -e '1i#!/usr/bin/env node\\' covaur"
+  },
   "author": "thimoteus",
   "license": "MIT",
   "dependencies": {
