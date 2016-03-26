@@ -15,6 +15,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION, Error, catchException, message)
 import Control.Monad.Eff.Console (CONSOLE, log)
 
+import Ansi.Codes (EscapeCode(Graphics), GraphicsParam(PMode, PForeground, Reset), RenderingMode(Bold), escapeCodeToString, Color(Green))
 import Unsafe.Coerce (unsafeCoerce)
 
 catch :: forall a eff. Eff ( err :: EXCEPTION | eff ) a -> Eff eff (Either Error a)
@@ -51,3 +52,13 @@ tail = drop 1
 
 printResult :: Foreign -> Either String (Array Result)
 printResult val = either (Left <<< show) (Right <<< resultsFromSearch) $ readJSON $ unsafeCoerce val
+
+bolden :: String -> String
+bolden s = escapeCodeToString (Graphics [PMode Bold])
+        <> s
+        <> escapeCodeToString (Graphics [Reset])
+
+green :: String -> String
+green s = escapeCodeToString (Graphics [PForeground Green])
+       <> s
+       <> escapeCodeToString (Graphics [Reset])

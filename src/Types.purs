@@ -19,11 +19,11 @@ import Node.SimpleRequest (REQUEST)
 
 import Partial.Unsafe (unsafeCrashWith)
 
-type Effects eff = ( console :: CONSOLE, request :: REQUEST | eff )
+type Effects eff = Eff ( console :: CONSOLE, request :: REQUEST | eff )
 
-type IO a = Eff (Effects (err :: EXCEPTION)) a
+type IO a = Effects (err :: EXCEPTION) a
 
-type App = Eff (Effects ()) Unit
+type App = Effects () Unit
 
 data Search = Search Int (Array Result)
 

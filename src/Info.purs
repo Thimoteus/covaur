@@ -19,7 +19,7 @@ info p = runAff throwException pure do
   res <- single p
   either (liftEff <<< log <<< message) logResult res
     where
-    logResult [] = liftEff $ log "No such package found." --log <<< pprint
+    logResult [] = liftEff $ log "No such package found."
     logResult xs = liftEff $ traverse_ (log <<< pprint) xs
     f = flip rpadTil 23
     g = showStrArrayPad 23
