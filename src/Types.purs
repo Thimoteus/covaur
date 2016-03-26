@@ -63,26 +63,26 @@ instance showResult :: Show Result where
 instance isForeignResult :: IsForeign Result where
   read value = do
     id <- readProp "ID" value
-    name <- safeToValue "Name" value
+    name <- safeToMonoid "Name" value
     packageBaseID <- readProp "PackageBaseID" value
-    packageBase <- safeToValue "PackageBase" value
-    version <- safeToValue "Version" value
-    description <- safeToValue "Description" value
+    packageBase <- safeToMonoid "PackageBase" value
+    version <- safeToMonoid "Version" value
+    description <- safeToMonoid "Description" value
     url <- readProp "URL" value
     numVotes <- readProp "NumVotes" value
     popularity <- readProp "Popularity" value
     outOfDate <- safeWithValue false "OutOfDate" value
-    maintainer <- safeToValue "Maintainer" value
+    maintainer <- safeToMonoid "Maintainer" value
     firstSubmitted <- toDate <$> readProp "FirstSubmitted" value
     lastModified <- toDate <$> readProp "LastModified" value
     urlPath <- readProp "URLPath" value
-    depends <- safeToValue "Depends" value
-    makeDepends <- safeToValue "MakeDepends" value
-    optDepends <- safeToValue "OptDepends" value
-    conflicts <- safeToValue "Conflicts" value
-    provides <- safeToValue "Provides" value
-    license <- safeToValue "License" value
-    keywords <- safeToValue "Keywords" value
+    depends <- safeToMonoid "Depends" value
+    makeDepends <- safeToMonoid "MakeDepends" value
+    optDepends <- safeToMonoid "OptDepends" value
+    conflicts <- safeToMonoid "Conflicts" value
+    provides <- safeToMonoid "Provides" value
+    license <- safeToMonoid "License" value
+    keywords <- safeToMonoid "Keywords" value
     pure $ Result { id, name, packageBaseID, packageBase, version, description
                   , url, numVotes, popularity, outOfDate, maintainer, firstSubmitted
                   , lastModified, urlPath, depends, makeDepends, optDepends
@@ -98,11 +98,11 @@ toDate = f <<< fromEpochMilliseconds <<< Milliseconds <<< (* 1000.0) <<< toNumbe
 instance isForeignSearch :: IsForeign Search where
   read value = do
     resultcount <- readProp "resultcount" value
-    results <- safeToValue "results" value
+    results <- safeToMonoid "results" value
     pure $ Search resultcount results
 
-safeToValue :: forall m. (Monoid m, IsForeign m) => String -> Foreign -> F m
-safeToValue = safeWithValue mempty
+safeToMonoid :: forall m. (Monoid m, IsForeign m) => String -> Foreign -> F m
+safeToMonoid = safeWithValue mempty
 
 safeWithValue :: forall a. IsForeign a => a -> String -> Foreign -> F a
 safeWithValue safe key val = do
