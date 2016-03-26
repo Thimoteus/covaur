@@ -22,5 +22,4 @@ confirm the package you want is called 'purescript-bin', then do
 
 ## Installing
 
-You need node.js and the `npm` binary. Then just run `npm install -g .` from inside
-this folder.
+You need node.js and the `npm` binary. Then just run `npm install -g covaur`.
