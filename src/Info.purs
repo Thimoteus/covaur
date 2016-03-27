@@ -3,7 +3,7 @@ module Info where
 import Prelude
 import Types (IO, Result(..))
 import AurJson (url)
-import Util (showDate, rpadTil, showStrArrayPad, green, red)
+import Util (showDate, rpadTil, showStrArrayPad, green, red, printError)
 import SinglePackage (single)
 
 import Data.Foldable (traverse_, foldMap)
@@ -13,10 +13,10 @@ import Data.Maybe (Maybe(Just), isJust)
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (log)
-import Control.Monad.Eff.Exception (throwException, message)
+import Control.Monad.Eff.Exception (message)
 
 info :: String -> IO Unit
-info p = runAff throwException pure do
+info p = runAff printError pure do
   res <- single p
   either (liftEff <<< log <<< message) logResult res
     where

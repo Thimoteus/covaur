@@ -1,7 +1,6 @@
 module Main where
 
 import Prelude
-import Control.Monad.Eff.Console (log)
 
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
@@ -13,7 +12,7 @@ import Node.Yargs.Applicative as Yargs
 import Search (search)
 import Info (info)
 import GitUrl (gitUrl)
-import Util (catch, printMessage)
+import Util (catch, printError)
 import Types (IO, App)
 
 import Partial.Unsafe (unsafePartial)
@@ -43,10 +42,7 @@ main :: App
 main = do
   res <- catch cli
   case res of
-       Left e -> do
-         printMessage e
-         log "If you believe this to be a bug, open an issue at https://www.github.com/Thimoteus/covaur/issues/"
-         log $ "Usage: covaur " <> usage
+       Left e -> printError e
        _ -> pure unit
   where
   searchArg = Yargs.yarg "s" ["search"] (Just "Search the AUR for packages") (Left "") true

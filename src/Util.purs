@@ -68,3 +68,9 @@ colorize :: Color -> String -> String
 colorize c s = escapeCodeToString (Graphics [PForeground c])
             <> s
             <> escapeCodeToString (Graphics [Reset])
+
+printError :: forall eff. Error -> Eff ( console :: CONSOLE | eff ) Unit
+printError e = do
+  printMessage e
+  log "If you believe this to be a bug, open an issue at https://www.github.com/Thimoteus/covaur/issues/"
+  log $ "Run --help to see usage."
