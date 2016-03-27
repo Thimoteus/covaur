@@ -43,7 +43,7 @@ newtype Result =
          , url :: String
          , numVotes :: Int
          , popularity :: Number
-         , outOfDate :: Boolean
+         , outOfDate :: Maybe Date
          , maintainer :: String
          , firstSubmitted :: Date
          , lastModified :: Date
@@ -71,7 +71,10 @@ instance isForeignResult :: IsForeign Result where
     url <- readProp "URL" value
     numVotes <- readProp "NumVotes" value
     popularity <- readProp "Popularity" value
-    outOfDate <- safeWithValue false "OutOfDate" value
+    outOfDate <- map toDate <$> do
+      v <- readProp "OutOfDate" value
+      u <- readNullOrUndefined read v
+      pure $ runNullOrUndefined u
     maintainer <- safeToMonoid "Maintainer" value
     firstSubmitted <- toDate <$> readProp "FirstSubmitted" value
     lastModified <- toDate <$> readProp "LastModified" value

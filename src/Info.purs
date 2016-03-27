@@ -8,6 +8,7 @@ import SinglePackage (single)
 
 import Data.Foldable (traverse_, foldMap)
 import Data.Either (either)
+import Data.Maybe (Maybe(Just))
 
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff.Class (liftEff)
@@ -42,4 +43,6 @@ info p = runAff throwException pure do
                           , f "Provides: " <> g r.provides
                           , f "License: " <> g r.license
                           , f "Keywords: " <> g r.keywords
-                          ]
+                          ] <> case r.outOfDate of
+                                    Just d -> "Out of date: " <> showDate d
+                                    _ -> ""

@@ -14,9 +14,9 @@ import Control.Monad.Aff (launchAff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (log)
 
-search :: String -> IO Unit
-search p = launchAff do
-  res <- get $ aurl <> "&type=search&arg=" <> p
+search :: String -> String -> IO Unit
+search by p = launchAff do
+  res <- get $ aurl <> "&by=" <> by <> "&type=search&arg=" <> p
   either (liftEff <<< log) logResult $ printResult res.body
     where
     logResult [] = liftEff $ log "No such package found."
