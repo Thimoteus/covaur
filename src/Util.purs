@@ -15,7 +15,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION, Error, catchException, message)
 import Control.Monad.Eff.Console (CONSOLE, log)
 
-import Ansi.Codes (EscapeCode(Graphics), GraphicsParam(PMode, PForeground, Reset), RenderingMode(Bold), escapeCodeToString, Color(Green))
+import Ansi.Codes (EscapeCode(Graphics), GraphicsParam(PMode, PForeground, Reset), RenderingMode(Bold), escapeCodeToString, Color(Green, Red))
 import Unsafe.Coerce (unsafeCoerce)
 
 catch :: forall a eff. Eff ( err :: EXCEPTION | eff ) a -> Eff eff (Either Error a)
@@ -59,6 +59,12 @@ bolden s = escapeCodeToString (Graphics [PMode Bold])
         <> escapeCodeToString (Graphics [Reset])
 
 green :: String -> String
-green s = escapeCodeToString (Graphics [PForeground Green])
-       <> s
-       <> escapeCodeToString (Graphics [Reset])
+green = colorize Green
+
+red :: String -> String
+red = colorize Red
+
+colorize :: Color -> String -> String
+colorize c s = escapeCodeToString (Graphics [PForeground c])
+            <> s
+            <> escapeCodeToString (Graphics [Reset])

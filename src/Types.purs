@@ -68,7 +68,7 @@ instance isForeignResult :: IsForeign Result where
     packageBase <- safeToMonoid "PackageBase" value
     version <- safeToMonoid "Version" value
     description <- safeToMonoid "Description" value
-    url <- readProp "URL" value
+    url <- safeWithValue "Not found" "URL" value
     numVotes <- readProp "NumVotes" value
     popularity <- readProp "Popularity" value
     outOfDate <- map toDate <$> do

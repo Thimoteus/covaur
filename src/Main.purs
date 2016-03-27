@@ -37,7 +37,7 @@ covaur _ _ s _ m    | m          = search "maintainer" s
 covaur _ _ s _ _    | not (null s) = search "name-desc" s
 
 usage :: String
-usage = " [-s|--search PACKAGE] [-i|--info PACKAGE] [-g|--git-url PACKAGE] [-m|--by-maintainer] [--help]"
+usage = " [-s|--search PACKAGE] [-i|--info PACKAGE] [-g|--git-url PACKAGE] [-m|--by-maintainer] [-n|--by-name] [--help]"
 
 main :: App
 main = do

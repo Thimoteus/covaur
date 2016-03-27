@@ -3,10 +3,11 @@ module Search where
 import Prelude
 import AurJson (aurl)
 import Types (IO, Result(..))
-import Util (printResult, lpad, green)
+import Util (printResult, lpad, green, red)
 
 import Data.Foldable (traverse_, foldMap)
 import Data.Either (either)
+import Data.Maybe (isJust)
 
 import Node.SimpleRequest.Secure (get)
 
@@ -22,6 +23,6 @@ search by p = launchAff do
     logResult [] = liftEff $ log "No such package found."
     logResult xs = liftEff $ traverse_ (log <<< pprint) xs
     pprint (Result r) =
-      foldMap (_ <> "\n") [ green r.name <> "@" <> r.version
+      foldMap (_ <> "\n") [ (if isJust r.outOfDate then red else green) r.name <> "@" <> r.version
                           , lpad r.description 4
                           ]

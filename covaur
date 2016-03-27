@@ -330,7 +330,8 @@ var PS = { };
               throw new Error("Failed pattern match at Data.Maybe line 27, column 1 - line 28, column 1: " + [ v.constructor.name, v1.constructor.name, v2.constructor.name ]);
           };
       };
-  };                                                
+  };                                                   
+  var isJust = maybe(false)(Prelude["const"](true));
   var functorMaybe = new Prelude.Functor(function (v) {
       return function (v1) {
           if (v1 instanceof Just) {
@@ -344,6 +345,7 @@ var PS = { };
   };
   exports["Nothing"] = Nothing;
   exports["Just"] = Just;
+  exports["isJust"] = isJust;
   exports["fromMaybe"] = fromMaybe;
   exports["maybe"] = maybe;
   exports["functorMaybe"] = functorMaybe;;
@@ -2485,7 +2487,7 @@ var PS = { };
                   return Prelude.bind(Data_Either.bindEither)(safeToMonoid(Data_Monoid.monoidString)(Data_Foreign_Class.stringIsForeign)("PackageBase")(value))(function (v3) {
                       return Prelude.bind(Data_Either.bindEither)(safeToMonoid(Data_Monoid.monoidString)(Data_Foreign_Class.stringIsForeign)("Version")(value))(function (v4) {
                           return Prelude.bind(Data_Either.bindEither)(safeToMonoid(Data_Monoid.monoidString)(Data_Foreign_Class.stringIsForeign)("Description")(value))(function (v5) {
-                              return Prelude.bind(Data_Either.bindEither)(Data_Foreign_Class.readProp(Data_Foreign_Class.stringIsForeign)(Data_Foreign_Index.indexString)("URL")(value))(function (v6) {
+                              return Prelude.bind(Data_Either.bindEither)(safeWithValue(Data_Foreign_Class.stringIsForeign)("Not found")("URL")(value))(function (v6) {
                                   return Prelude.bind(Data_Either.bindEither)(Data_Foreign_Class.readProp(Data_Foreign_Class.intIsForeign)(Data_Foreign_Index.indexString)("NumVotes")(value))(function (v7) {
                                       return Prelude.bind(Data_Either.bindEither)(Data_Foreign_Class.readProp(Data_Foreign_Class.numberIsForeign)(Data_Foreign_Index.indexString)("Popularity")(value))(function (v8) {
                                           return Prelude.bind(Data_Either.bindEither)(Prelude["<$>"](Data_Either.functorEither)(Prelude.map(Data_Maybe.functorMaybe)(toDate))(Prelude.bind(Data_Either.bindEither)(Data_Foreign_Class.readProp(Data_Foreign_Class.foreignIsForeign)(Data_Foreign_Index.indexString)("OutOfDate")(value))(function (v9) {
@@ -2646,9 +2648,13 @@ var PS = { };
           return z;
       };
   };                                    
-  var green = function (s) {
-      return Ansi_Codes.escapeCodeToString(new Ansi_Codes.Graphics([ new Ansi_Codes.PForeground(Ansi_Codes.Green.value) ])) + (s + Ansi_Codes.escapeCodeToString(new Ansi_Codes.Graphics([ Ansi_Codes.Reset.value ])));
+  var colorize = function (c) {
+      return function (s) {
+          return Ansi_Codes.escapeCodeToString(new Ansi_Codes.Graphics([ new Ansi_Codes.PForeground(c) ])) + (s + Ansi_Codes.escapeCodeToString(new Ansi_Codes.Graphics([ Ansi_Codes.Reset.value ])));
+      };
   };
+  var green = colorize(Ansi_Codes.Green.value);
+  var red = colorize(Ansi_Codes.Red.value);
   var $$catch = function (e) {
       return Control_Monad_Eff_Exception.catchException(function ($12) {
           return Prelude.pure(Control_Monad_Eff.applicativeEff)(Data_Either.Left.create($12));
@@ -2657,6 +2663,8 @@ var PS = { };
           return Data_Either.Right.create($13);
       });
   };
+  exports["colorize"] = colorize;
+  exports["red"] = red;
   exports["green"] = green;
   exports["printResult"] = printResult;
   exports["tail"] = tail;
@@ -2802,14 +2810,27 @@ var PS = { };
   var Data_Monoid = PS["Data.Monoid"];
   var Control_Monad_Eff = PS["Control.Monad.Eff"];        
   var info = function (p) {
-      var g = Util.showStrArrayPad(23);
-      var f = Prelude.flip(Util.rpadTil)(23);
+      var g = Util.showStrArrayPad(20);
+      var f = Prelude.flip(Util.rpadTil)(20);
       var pprint = function (v) {
           return Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidString)(function (v1) {
               return v1 + "\n";
-          })([ f("Name: ") + v.name, f("Package Base: ") + v.packageBase, f("Version: ") + v.version, f("Description: ") + v.description, f("Source: ") + v.url, f("Votes: ") + Prelude.show(Prelude.showInt)(v.numVotes), f("Popularity: ") + Prelude.show(Prelude.showNumber)(v.popularity), f("Maintainer: ") + v.maintainer, f("First submitted: ") + Util.showDate(v.firstSubmitted), f("Last modified: ") + Util.showDate(v.lastModified), f("Snapshot file: ") + (AurJson.url + v.urlPath), f("Depends on: ") + g(v.depends), f("Make depends on: ") + g(v.makeDepends), f("Optional dependencies: ") + g(v.optDepends), f("Conflicts: ") + g(v.conflicts), f("Provides: ") + g(v.provides), f("License: ") + g(v.license), f("Keywords: ") + g(v.keywords) ]) + (function () {
+          })([ (function () {
+              var $7 = Data_Maybe.isJust(v.outOfDate);
+              if ($7) {
+                  return Util.red;
+              };
+              if (!$7) {
+                  return Util.green;
+              };
+              throw new Error("Failed pattern match at Info line 28, column 30 - line 28, column 71: " + [ $7.constructor.name ]);
+          })()(v.name), f("Package Base:") + v.packageBase, f("Version:") + v.version, f("Description:") + v.description, f("Source:") + v.url, f("Votes:") + Prelude.show(Prelude.showInt)(v.numVotes), f("Popularity:") + Prelude.show(Prelude.showNumber)(v.popularity), f("Maintainer:") + v.maintainer, f("First submitted:") + Util.showDate(v.firstSubmitted), f("Last modified:") + Util.showDate(v.lastModified), f("Snapshot file:") + (AurJson.url + v.urlPath), f("Depends on:") + g(Prelude["<>"](Prelude.semigroupArray)(v.depends)(Prelude["<>"](Prelude.semigroupArray)(Prelude.map(Prelude.functorArray)(function (v1) {
+              return v1 + " (make)";
+          })(v.makeDepends))(Prelude.map(Prelude.functorArray)(function (v1) {
+              return v1 + " (opt)";
+          })(v.optDepends)))), f("Conflicts:") + g(v.conflicts), f("Provides:") + g(v.provides), f("License:") + g(v.license), f("Keywords:") + g(v.keywords) ]) + (function () {
               if (v.outOfDate instanceof Data_Maybe.Just) {
-                  return "Out of date: " + Util.showDate(v.outOfDate.value0);
+                  return Util.red(f("Out of date:") + Util.showDate(v.outOfDate.value0));
               };
               return "";
           })();
@@ -2818,13 +2839,13 @@ var PS = { };
           if (v.length === 0) {
               return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log("No such package found."));
           };
-          return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableArray)(function ($9) {
-              return Control_Monad_Eff_Console.log(pprint($9));
+          return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableArray)(function ($12) {
+              return Control_Monad_Eff_Console.log(pprint($12));
           })(v));
       };
       return Control_Monad_Aff.runAff(Control_Monad_Eff_Exception.throwException)(Prelude.pure(Control_Monad_Eff.applicativeEff))(Prelude.bind(Control_Monad_Aff.bindAff)(SinglePackage.single(p))(function (v) {
-          return Data_Either.either(function ($10) {
-              return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log(Control_Monad_Eff_Exception.message($10)));
+          return Data_Either.either(function ($13) {
+              return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log(Control_Monad_Eff_Exception.message($13)));
           })(logResult)(v);
       }));
   };
@@ -3109,6 +3130,7 @@ var PS = { };
   var Util = PS["Util"];
   var Data_Foldable = PS["Data.Foldable"];
   var Data_Either = PS["Data.Either"];
+  var Data_Maybe = PS["Data.Maybe"];
   var Node_SimpleRequest_Secure = PS["Node.SimpleRequest.Secure"];
   var Control_Monad_Aff = PS["Control.Monad.Aff"];
   var Control_Monad_Eff_Class = PS["Control.Monad.Eff.Class"];
@@ -3120,19 +3142,28 @@ var PS = { };
           var pprint = function (v) {
               return Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidString)(function (v1) {
                   return v1 + "\n";
-              })([ Util.green(v.name) + ("@" + v.version), Util.lpad(v.description)(4) ]);
+              })([ (function () {
+                  var $5 = Data_Maybe.isJust(v.outOfDate);
+                  if ($5) {
+                      return Util.red;
+                  };
+                  if (!$5) {
+                      return Util.green;
+                  };
+                  throw new Error("Failed pattern match at Search line 26, column 30 - line 26, column 71: " + [ $5.constructor.name ]);
+              })()(v.name) + ("@" + v.version), Util.lpad(v.description)(4) ]);
           };
           var logResult = function (v) {
               if (v.length === 0) {
                   return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log("No such package found."));
               };
-              return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableArray)(function ($7) {
-                  return Control_Monad_Eff_Console.log(pprint($7));
+              return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableArray)(function ($8) {
+                  return Control_Monad_Eff_Console.log(pprint($8));
               })(v));
           };
           return Control_Monad_Aff.launchAff(Prelude.bind(Control_Monad_Aff.bindAff)(Node_SimpleRequest_Secure.get(AurJson.aurl + ("&by=" + (by + ("&type=search&arg=" + p)))))(function (v) {
-              return Data_Either.either(function ($8) {
-                  return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log($8));
+              return Data_Either.either(function ($9) {
+                  return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log($9));
               })(logResult)(Util.printResult(v.body));
           }));
       };
@@ -3157,7 +3188,7 @@ var PS = { };
   var Types = PS["Types"];
   var Partial_Unsafe = PS["Partial.Unsafe"];
   var Control_Monad_Eff = PS["Control.Monad.Eff"];        
-  var usage = " [-s|--search PACKAGE] [-i|--info PACKAGE] [-g|--git-url PACKAGE] [-m|--by-maintainer] [--help]";
+  var usage = " [-s|--search PACKAGE] [-i|--info PACKAGE] [-g|--git-url PACKAGE] [-m|--by-maintainer] [-n|--by-name] [--help]";
   var covaur = function (dictPartial) {
       return function (v) {
           return function (v1) {
